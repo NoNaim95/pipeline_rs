@@ -1,5 +1,5 @@
-use pipeline_rs::pipes::receive_pipe::ReceivePipe;
-use std::thread::sleep_ms;
+use pipeline_rs::pipes::{receive_pipe::ReceivePipe, send_pipe::SendPipe};
+use std::{sync::mpsc::channel, thread::sleep, time::Duration};
 
 struct Client<I: Iterator> {
     messages: I,
@@ -10,19 +10,30 @@ impl<I: Iterator> Client<I> {
         Self { messages: i }
     }
 
-    pub fn handle_messages(mut self, mut message_handler: impl FnMut(&I::Item)) {
+    pub fn handle_messages(self, mut message_handler: impl FnMut(&I::Item)) {
+        let mut n = 0;
         for msg in self.messages {
-            message_handler(&msg)
+            message_handler(&msg);
+            n += 1;
         }
+        println!("There were {} messages in the buffer", n);
     }
 }
 
 fn main() {
-    let mut pipe = ReceivePipe::new(|| 10).append_transformer(|x| {
-        sleep_ms(50);
-        x * 2
+    let (s, r) = channel::<i32>();
+
+    let mut send_pipe = SendPipe::new(move |x| {
+        sleep(Duration::from_millis(300));
+        s.send(x).unwrap();
     });
 
-    let mut client = Client::new(pipe.into_iter());
-    client.handle_messages(|x| println!("The number we received was: {}", x));
+    std::thread::spawn(move || loop {
+        send_pipe.send(10);
+    });
+    sleep(Duration::from_millis(970));
+
+    let mut recv_pipe = ReceivePipe::new(||{r.try_recv().ok()});
+    let client = Client::new(recv_pipe.try_iter());
+    client.handle_messages(|msg|{println!("[HANDLER]: msg: {}",msg)})
 }

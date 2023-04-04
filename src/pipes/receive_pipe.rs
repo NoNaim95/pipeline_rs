@@ -24,6 +24,22 @@ impl<T, F: FnMut() -> T> ReceivePipe<T, F> {
     }
 }
 
+impl<T, F: FnMut() -> Option<T>> ReceivePipe<Option<T>, F> {
+    pub fn try_iter<'a>(&'a mut self) -> TryIter<'a, T, F>{
+        TryIter(self)
+    }
+}
+
+pub struct TryIter<'a, T, F: FnMut() -> Option<T>>(pub &'a mut ReceivePipe<Option<T>, F>);
+
+impl<'a, T, F: FnMut() -> Option<T>> Iterator for TryIter<'a, T, F> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.recv()
+    }
+}
+
 pub struct Iter<'a, T, F: FnMut() -> T>(pub &'a mut ReceivePipe<T, F>);
 
 impl<'a, T, F: FnMut() -> T> Iterator for Iter<'a, T, F> {
