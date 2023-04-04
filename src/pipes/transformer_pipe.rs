@@ -32,3 +32,9 @@ impl<T, U, F: FnMut(T) -> U> TransformerPipe<T, U, F> {
         self.0
     }
 }
+
+impl<T, U, F: FnMut(T) -> U> From<F> for TransformerPipe<T, U, F> {
+    fn from(value: F) -> Self {
+        Self::new(value)
+    }
+}
