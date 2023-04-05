@@ -17,14 +17,15 @@ impl<T, U, F: FnMut(T) -> U> TransformerPipe<T, U, F> {
 
     pub fn append_transformer<U2, F2: FnMut(U) -> U2>(
         mut self,
-        mut t: F2,
+        mut t: TransformerPipe<U, U2, F2>,
     ) -> TransformerPipe<T, U2, impl FnMut(T) -> U2> {
-        let closure = move |x| t(self.transform(x));
-        TransformerPipe::new(closure)
+        let mut inner = t.into_inner();
+        TransformerPipe::new(move |x| inner(self.transform(x)))
     }
 
-    pub fn append_consumer<F2: FnMut(U)>(mut self, mut t: F2) -> SendPipe<T, impl FnMut(T)> {
-        let closure = move |x| t(self.transform(x));
+    pub fn append_consumer<F2: FnMut(U)>(mut self, mut t: SendPipe<U,F2>) -> SendPipe<T, impl FnMut(T)> {
+        let mut inner = t.into_inner();
+        let closure = move |x| inner(self.transform(x));
         SendPipe::new(closure)
     }
 

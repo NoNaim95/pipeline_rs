@@ -17,3 +17,9 @@ impl<T, F: FnMut(T)> SendPipe<T, F> {
         self.0
     }
 }
+
+impl<T, F: FnMut(T)> From<F> for SendPipe<T, F> {
+    fn from(value: F) -> Self {
+        Self::new(value)
+    }
+}
