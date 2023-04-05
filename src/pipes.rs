@@ -10,13 +10,13 @@ pub trait SendPipe<T> {
     fn send(&mut self, t: T);
 }
 
-impl<T, F: Fn() -> T> ReceivePipe<T> for F {
+impl<T, F: FnMut() -> T> ReceivePipe<T> for F {
     fn recv(&mut self) -> T {
         (self)()
     }
 }
 
-impl<T, F: Fn(T)> SendPipe<T> for F {
+impl<T, F: FnMut(T)> SendPipe<T> for F {
     fn send(&mut self, t: T) {
         (self)(t)
     }
