@@ -1,21 +1,10 @@
-use super::transformer_pipe::TransformerPipe;
+use crate::pipes::ReceivePipe;
 
-pub struct ReceivePipe<T, F: FnMut() -> T>(F);
-impl<T, F: FnMut() -> T> ReceivePipe<T, F> {
+pub struct ReceivePipeImpl<T, F: Fn() -> T>(F);
+
+impl<T, F: Fn() -> T> ReceivePipeImpl<T, F> {
     pub fn new(f: F) -> Self {
-        ReceivePipe(f)
-    }
-
-    pub fn recv(&mut self) -> T {
-        self.0()
-    }
-
-    pub fn append_transformer<U2, F2: FnMut(T) -> U2>(
-        mut self,
-        t: TransformerPipe<T, U2, F2>,
-    ) -> ReceivePipe<U2, impl FnMut() -> U2> {
-        let mut inner = t.into_inner();
-        ReceivePipe::new(move || inner(self.recv()))
+        ReceivePipeImpl(f)
     }
 
     pub fn iter(&mut self) -> Iter<T, F> {
@@ -27,13 +16,19 @@ impl<T, F: FnMut() -> T> ReceivePipe<T, F> {
     }
 }
 
-impl<T, F: FnMut() -> T> From<F> for ReceivePipe<T, F> {
+impl<T, F: Fn() -> T> ReceivePipe<T> for ReceivePipeImpl<T, F> {
+    fn recv(&mut self) -> T {
+        self.0()
+    }
+}
+
+impl<T, F: Fn() -> T> From<F> for ReceivePipeImpl<T, F> {
     fn from(value: F) -> Self {
         Self::new(value)
     }
 }
 
-impl<T, F: FnMut() -> Option<T>> ReceivePipe<Option<T>, F> {
+impl<T, F: Fn() -> Option<T>> ReceivePipeImpl<Option<T>, F> {
     pub fn try_iter(&mut self) -> TryIter<T, F> {
         TryIter(self)
     }
@@ -43,9 +38,9 @@ impl<T, F: FnMut() -> Option<T>> ReceivePipe<Option<T>, F> {
     }
 }
 
-pub struct TryIter<'a, T, F: FnMut() -> Option<T>>(pub &'a mut ReceivePipe<Option<T>, F>);
+pub struct TryIter<'a, T, F: Fn() -> Option<T>>(pub &'a mut ReceivePipeImpl<Option<T>, F>);
 
-impl<'a, T, F: FnMut() -> Option<T>> Iterator for TryIter<'a, T, F> {
+impl<'a, T, F: Fn() -> Option<T>> Iterator for TryIter<'a, T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -53,9 +48,9 @@ impl<'a, T, F: FnMut() -> Option<T>> Iterator for TryIter<'a, T, F> {
     }
 }
 
-pub struct IntoTryIter<T, F: FnMut() -> Option<T>>(pub ReceivePipe<Option<T>, F>);
+pub struct IntoTryIter<T, F: Fn() -> Option<T>>(pub ReceivePipeImpl<Option<T>, F>);
 
-impl<T, F: FnMut() -> Option<T>> Iterator for IntoTryIter<T, F> {
+impl<T, F: Fn() -> Option<T>> Iterator for IntoTryIter<T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -63,9 +58,9 @@ impl<T, F: FnMut() -> Option<T>> Iterator for IntoTryIter<T, F> {
     }
 }
 
-pub struct Iter<'a, T, F: FnMut() -> T>(pub &'a mut ReceivePipe<T, F>);
+pub struct Iter<'a, T, F: Fn() -> T>(pub &'a mut ReceivePipeImpl<T, F>);
 
-impl<'a, T, F: FnMut() -> T> Iterator for Iter<'a, T, F> {
+impl<'a, T, F: Fn() -> T> Iterator for Iter<'a, T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -73,9 +68,9 @@ impl<'a, T, F: FnMut() -> T> Iterator for Iter<'a, T, F> {
     }
 }
 
-pub struct IntoIter<T, F: FnMut() -> T>(pub ReceivePipe<T, F>);
+pub struct IntoIter<T, F: Fn() -> T>(pub ReceivePipeImpl<T, F>);
 
-impl<T, F: FnMut() -> T> Iterator for IntoIter<T, F> {
+impl<T, F: Fn() -> T> Iterator for IntoIter<T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -83,7 +78,7 @@ impl<T, F: FnMut() -> T> Iterator for IntoIter<T, F> {
     }
 }
 
-impl<T, F: FnMut() -> T> IntoIterator for ReceivePipe<T, F> {
+impl<T, F: Fn() -> T> IntoIterator for ReceivePipeImpl<T, F> {
     type Item = T;
     type IntoIter = IntoIter<T, F>;
 
@@ -92,8 +87,8 @@ impl<T, F: FnMut() -> T> IntoIterator for ReceivePipe<T, F> {
     }
 }
 
-impl<T, F: FnMut() -> T> From<ReceivePipe<T, F>> for IntoIter<T, F> {
-    fn from(value: ReceivePipe<T, F>) -> Self {
+impl<T, F: Fn() -> T> From<ReceivePipeImpl<T, F>> for IntoIter<T, F> {
+    fn from(value: ReceivePipeImpl<T, F>) -> Self {
         Self(value)
     }
 }
