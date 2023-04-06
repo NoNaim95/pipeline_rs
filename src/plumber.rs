@@ -21,34 +21,38 @@ impl<P> From<P> for Plumber<P> {
     }
 }
 
-pub trait SendPlumber<T, P> {
-    fn with_transformer<T2, F: FnMut(T2) -> T>(self, t: F) -> Plumber<Transformer<T2, T, F, P>>
+pub trait SendPlumber<To, P> {
+    fn with_transformer<From, F>(self, transform: F) -> Plumber<Transformer<From, To, F, P>>
     where
-        Transformer<T2, T, F, P>: SendPipe<T2>;
+        F: FnMut(From) -> To,
+        Transformer<From, To, F, P>: SendPipe<From>;
 }
 
-pub trait ReceivePlumber<T, P> {
-    fn with_transformer<T2, F: FnMut(T) -> T2>(self, t: F) -> Plumber<Transformer<T, T2, F, P>>
+pub trait ReceivePlumber<From, P> {
+    fn with_transformer<To, F>(self, transform: F) -> Plumber<Transformer<From, To, F, P>>
     where
-        Transformer<T, T2, F, P>: ReceivePipe<T2>;
+        F: FnMut(From) -> To,
+        Transformer<From, To, F, P>: ReceivePipe<To>;
 }
 
-impl<T, P: SendPipe<T>> SendPlumber<T, P> for Plumber<P> {
-    fn with_transformer<T2, F: FnMut(T2) -> T>(self, t: F) -> Plumber<Transformer<T2, T, F, P>>
+impl<To, P: SendPipe<To>> SendPlumber<To, P> for Plumber<P> {
+    fn with_transformer<From, F>(self, transform: F) -> Plumber<Transformer<From, To, F, P>>
     where
-        Transformer<T2, T, F, P>: SendPipe<T2>,
+        F: FnMut(From) -> To,
+        Transformer<From, To, F, P>: SendPipe<From>,
     {
-        let transformer = Transformer::new(t, self.pipe);
+        let transformer = Transformer::new(transform, self.pipe);
         Plumber::new(transformer)
     }
 }
 
-impl<T, P: ReceivePipe<T>> ReceivePlumber<T, P> for Plumber<P> {
-    fn with_transformer<T2, F: FnMut(T) -> T2>(self, t: F) -> Plumber<Transformer<T, T2, F, P>>
+impl<From, P: ReceivePipe<From>> ReceivePlumber<From, P> for Plumber<P> {
+    fn with_transformer<To, F>(self, transform: F) -> Plumber<Transformer<From, To, F, P>>
     where
-        Transformer<T, T2, F, P>: ReceivePipe<T2>,
+        F: FnMut(From) -> To,
+        Transformer<From, To, F, P>: ReceivePipe<To>,
     {
-        let transformer = Transformer::new(t, self.pipe);
+        let transformer = Transformer::new(transform, self.pipe);
         Plumber::new(transformer)
     }
 }

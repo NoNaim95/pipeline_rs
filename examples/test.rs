@@ -42,9 +42,10 @@ fn main() {
         .complete();
     println!("{}", t.recv());
 
-    let send_pipe1 = Transformer::new(|x| x + 100, closure);
-
-    let mut send_pipe = Transformer::new(|x| x + 100, send_pipe1);
+    let send_pipe = Plumber::from(closure)
+        .with_transformer(|x| x + 100)
+        .with_transformer(|x| x + 100)
+        .complete();
 
     std::thread::spawn(move || loop {
         send_pipe.send(10);
