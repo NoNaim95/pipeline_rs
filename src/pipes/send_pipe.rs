@@ -1,10 +1,10 @@
 use crate::pipes::{SendPipe, SendPipeMut};
 
-pub struct SendPipeImpl<T, F: FnMut(T)>(F, std::marker::PhantomData<T>);
+pub struct SendPipeImpl<F>(F);
 
-impl<T, F: FnMut(T)> SendPipeImpl<T, F> {
+impl<F> SendPipeImpl<F> {
     pub fn new(f: F) -> Self {
-        SendPipeImpl(f, Default::default())
+        SendPipeImpl(f)
     }
 
     pub fn into_inner(self) -> F {
@@ -12,13 +12,13 @@ impl<T, F: FnMut(T)> SendPipeImpl<T, F> {
     }
 }
 
-impl<T, F: FnMut(T)> SendPipeMut<T> for SendPipeImpl<T, F> {
+impl<T, F: FnMut(T)> SendPipeMut<T> for SendPipeImpl<F> {
     fn send(&mut self, t: T) {
         self.0(t)
     }
 }
 
-impl<T, F: Fn(T)> SendPipe<T> for SendPipeImpl<T, F> {
+impl<T, F: Fn(T)> SendPipe<T> for SendPipeImpl<F> {
     fn send(&self, t: T) {
         self.0(t)
     }
