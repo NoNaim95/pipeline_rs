@@ -1,5 +1,4 @@
 use pipeline_rs::pipes::receive_pipe::ReceivePipeImpl;
-use pipeline_rs::pipes::transformer_pipe::Transformer;
 use pipeline_rs::pipes::*;
 use pipeline_rs::plumber::*;
 use std::{sync::mpsc::channel, thread::sleep, time::Duration};
