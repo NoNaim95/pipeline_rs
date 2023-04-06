@@ -1,6 +1,6 @@
 use pipeline_rs::pipes::receive_pipe::ReceivePipeImpl;
 use pipeline_rs::pipes::transformer_pipe::Transformer;
-use pipeline_rs::pipes::SendPipe;
+use pipeline_rs::pipes::*;
 use std::{sync::mpsc::channel, thread::sleep, time::Duration};
 
 struct Client<I: Iterator> {
@@ -23,7 +23,7 @@ impl<I: Iterator> Client<I> {
 }
 
 fn main() {
-    let (s, r) = channel::<i32>();
+    let (s, r) = channel();
     let closure = move |x| {
         sleep(Duration::from_millis(300));
         s.send(x).unwrap();
@@ -38,9 +38,8 @@ fn main() {
     });
     sleep(Duration::from_millis(970));
 
-    let try_iter = ReceivePipeImpl::new(|| r.try_recv().ok())
-        .into_try_iter()
-        .map(|x| x * 3);
+    let pipe = ReceivePipeImpl::new(|| r.try_recv().ok());
+    let try_iter = pipe.into_try_iter().map(|x| x * 3);
     let mut client = Client::new(try_iter);
 
     client.handle_messages(|msg| println!("[HANDLER]: msg: {}", msg));
