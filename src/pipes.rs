@@ -11,21 +11,21 @@ pub trait SendPipe<T>: SendPipeMut<T> {
 }
 
 pub trait ReceivePipeMut<T> {
-    fn recv(&mut self) -> T;
+    fn recv_mut(&mut self) -> T;
 }
 
 pub trait SendPipeMut<T> {
-    fn send(&mut self, t: T);
+    fn send_mut(&mut self, t: T);
 }
 
 impl<T, F: FnMut() -> T> ReceivePipeMut<T> for F {
-    fn recv(&mut self) -> T {
+    fn recv_mut(&mut self) -> T {
         (self)()
     }
 }
 
 impl<T, F: FnMut(T)> SendPipeMut<T> for F {
-    fn send(&mut self, t: T) {
+    fn send_mut(&mut self, t: T) {
         (self)(t)
     }
 }

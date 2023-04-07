@@ -1,5 +1,4 @@
 use pipeline_rs::pipes::receive_pipe::*;
-use pipeline_rs::pipes::send_pipe::*;
 use pipeline_rs::pipes::*;
 use pipeline_rs::plumber::*;
 use std::{sync::mpsc::channel, thread::sleep, time::Duration};
@@ -28,33 +27,29 @@ fn main() {
     let mut i = 0;
     let closure = move |x| {
         i += 1;
-        sleep(Duration::from_millis(300));
-        s.send(x).unwrap();
+        s.send(x + i).unwrap();
     };
 
-    let t = Plumber::from(|_: i32| i += 1).with_transformer_mut(|a: i32| a + 1);
-    let t = t.with_transformer_mut(|a: i32| a + 1);
-    t.complete().send(42);
-
-    let t = Plumber::from(|a: String| println!("{}", a))
+    let t = Plumber::new(|a: String| println!("{}", a))
         .with_transformer(|i: i32| i.to_string())
         .with_transformer(|(a, b)| a + b)
-        .complete();
+        .build();
     t.send((1, 2));
 
-    let t = Plumber::from(|| 42)
+    let t = Plumber::new(|| 42)
         .with_transformer(|n| format!("Zahl: {}", n))
-        .with_transformer(|s| s + "...")
-        .complete();
+        .with_transformer(|s: String| s + "...")
+        .build();
     println!("{}", t.recv());
 
-    let mut send_pipe = Plumber::from(closure)
-        .with_transformer_mut(|x| x + 100)
-        .with_transformer_mut(|x| x + 100)
-        .complete();
+    let mut send_pipe = Plumber::new(closure)
+        .with_transformer(|x| x + 100)
+        .with_transformer(|x| x + 100)
+        .build();
 
     std::thread::spawn(move || loop {
-        send_pipe.send(10);
+        sleep(Duration::from_millis(300));
+        send_pipe.send_mut(10);
     });
     sleep(Duration::from_millis(970));
 

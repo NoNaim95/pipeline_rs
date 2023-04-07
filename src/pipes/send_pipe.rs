@@ -13,7 +13,7 @@ impl<F> SendPipeImpl<F> {
 }
 
 impl<T, F: FnMut(T)> SendPipeMut<T> for SendPipeImpl<F> {
-    fn send(&mut self, t: T) {
+    fn send_mut(&mut self, t: T) {
         self.0(t)
     }
 }

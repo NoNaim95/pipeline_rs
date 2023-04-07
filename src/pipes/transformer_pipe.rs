@@ -1,13 +1,13 @@
 use crate::pipes::{ReceivePipe, ReceivePipeMut, SendPipe, SendPipeMut};
 use std::marker::PhantomData;
 
-pub struct Transformer<I, O, F: FnMut(I) -> O, P> {
+pub struct Transformer<I, O, F, P> {
     transform: F,
     pipe: P,
     phantom: PhantomData<(I, O)>,
 }
 
-impl<I, O, F: FnMut(I) -> O, P> Transformer<I, O, F, P> {
+impl<I, O, F, P> Transformer<I, O, F, P> {
     pub fn new(transform: F, pipe: P) -> Self {
         Self {
             transform,
@@ -30,13 +30,13 @@ impl<I, O, F: Fn(I) -> O, P: ReceivePipe<I>> ReceivePipe<O> for Transformer<I, O
 }
 
 impl<I, O, F: FnMut(I) -> O, P: SendPipeMut<O>> SendPipeMut<I> for Transformer<I, O, F, P> {
-    fn send(&mut self, t: I) {
-        self.pipe.send((self.transform)(t));
+    fn send_mut(&mut self, t: I) {
+        self.pipe.send_mut((self.transform)(t));
     }
 }
 
 impl<I, O, F: FnMut(I) -> O, P: ReceivePipeMut<I>> ReceivePipeMut<O> for Transformer<I, O, F, P> {
-    fn recv(&mut self) -> O {
-        (self.transform)(self.pipe.recv())
+    fn recv_mut(&mut self) -> O {
+        (self.transform)(self.pipe.recv_mut())
     }
 }

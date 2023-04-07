@@ -17,7 +17,7 @@ impl<T, F: FnMut() -> T> ReceivePipeImpl<F> {
 }
 
 impl<T, F: FnMut() -> T> ReceivePipeMut<T> for ReceivePipeImpl<F> {
-    fn recv(&mut self) -> T {
+    fn recv_mut(&mut self) -> T {
         self.0()
     }
 }
@@ -44,7 +44,7 @@ impl<'a, T, F: FnMut() -> Option<T>> Iterator for TryIter<'a, T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.recv()
+        self.0.recv_mut()
     }
 }
 
@@ -54,7 +54,7 @@ impl<T, F: FnMut() -> Option<T>> Iterator for IntoTryIter<T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.recv()
+        self.0.recv_mut()
     }
 }
 
@@ -64,7 +64,7 @@ impl<'a, T, F: FnMut() -> T> Iterator for Iter<'a, T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        Some(self.0.recv())
+        Some(self.0.recv_mut())
     }
 }
 
@@ -74,7 +74,7 @@ impl<T, F: FnMut() -> T> Iterator for IntoIter<T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        Some(self.0.recv())
+        Some(self.0.recv_mut())
     }
 }
 
