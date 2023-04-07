@@ -1,4 +1,4 @@
-use crate::pipes::{ReceivePipe, SendPipe};
+/*use crate::pipes::{ReceivePipe, SendPipe};
 
 pub trait Source<T> {
     fn take(&mut self) -> T;
@@ -6,7 +6,7 @@ pub trait Source<T> {
 
 impl<T, U: ReceivePipe<T>> Source<T> for U {
     fn take(&mut self) -> T {
-        self.recv()
+        self.recv_mut()
     }
 }
 
@@ -16,6 +16,7 @@ pub trait Destination<T> {
 
 impl<T, U: SendPipe<T>> Destination<T> for U {
     fn put(&mut self, t: T) {
-        self.send(t)
+        self.send_mut(t)
     }
 }
+*/

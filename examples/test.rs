@@ -1,4 +1,5 @@
-use pipeline_rs::pipes::receive_pipe::ReceivePipeImpl;
+use pipeline_rs::pipes::receive_pipe::*;
+use pipeline_rs::pipes::send_pipe::*;
 use pipeline_rs::pipes::*;
 use pipeline_rs::plumber::*;
 use std::{sync::mpsc::channel, thread::sleep, time::Duration};
@@ -24,10 +25,16 @@ impl<I: Iterator> Client<I> {
 
 fn main() {
     let (s, r) = channel();
+    let mut i = 0;
     let closure = move |x| {
+        i += 1;
         sleep(Duration::from_millis(300));
         s.send(x).unwrap();
     };
+
+    let t = Plumber::from(|_: i32| i += 1).with_transformer_mut(|a: i32| a + 1);
+    let t = t.with_transformer_mut(|a: i32| a + 1);
+    t.complete().send(42);
 
     let t = Plumber::from(|a: String| println!("{}", a))
         .with_transformer(|i: i32| i.to_string())
@@ -41,9 +48,9 @@ fn main() {
         .complete();
     println!("{}", t.recv());
 
-    let send_pipe = Plumber::from(closure)
-        .with_transformer(|x| x + 100)
-        .with_transformer(|x| x + 100)
+    let mut send_pipe = Plumber::from(closure)
+        .with_transformer_mut(|x| x + 100)
+        .with_transformer_mut(|x| x + 100)
         .complete();
 
     std::thread::spawn(move || loop {
