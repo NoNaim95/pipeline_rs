@@ -53,8 +53,9 @@ fn main() {
     });
     sleep(Duration::from_millis(970));
 
-    let pipe = ReceivePipeImpl::new(|| r.try_recv().ok());
-    let try_iter = pipe.into_try_iter().map(|x| x * 3);
+    let try_iter = ReceivePipeImpl::new(|| r.try_recv().ok())
+        .into_iter()
+        .map(|x| x * 3);
     let mut client = Client::new(try_iter);
 
     client.handle_messages(|msg| println!("[HANDLER]: msg: {}", msg));
