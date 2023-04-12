@@ -69,3 +69,45 @@ impl<'a, T, P: ReceivePipeMut<T>> IntoPipeIter<'a, T, P> for P {
         PipeIterator(self.into(), PhantomData)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::pipes::receive_pipe::ReceivePipeImpl;
+
+    #[test]
+    fn test_iter() {
+        let mut i = 0;
+        let mut pipe = ReceivePipeImpl(|| {
+            i += 1;
+            if i <= 3 {
+                Some(i)
+            } else {
+                None
+            }
+        });
+        let mut iter = pipe.iter();
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(pipe.recv_mut(), None);
+    }
+
+    #[test]
+    fn test_into_iter() {
+        let mut i = 0;
+        let mut iter = ReceivePipeImpl(|| {
+            i += 1;
+            if i <= 3 {
+                Some(i)
+            } else {
+                None
+            }
+        })
+        .into_iter();
+        assert_eq!(iter.next(), Some(1));
+        assert_eq!(iter.next(), Some(2));
+        assert_eq!(iter.next(), Some(3));
+        assert_eq!(iter.next(), None);
+    }
+}

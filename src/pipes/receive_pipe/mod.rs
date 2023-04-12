@@ -26,3 +26,26 @@ impl<T, F: Fn() -> T> ReceivePipe<T> for ReceivePipeImpl<F> {
         self.0()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_recv() {
+        assert_eq!(ReceivePipeImpl(|| 1).recv(), 1);
+    }
+
+    #[test]
+    fn test_recv_mut() {
+        let mut i = 0;
+        assert_eq!(
+            ReceivePipeImpl(|| {
+                i += 1;
+                i
+            })
+            .recv_mut(),
+            1
+        );
+    }
+}

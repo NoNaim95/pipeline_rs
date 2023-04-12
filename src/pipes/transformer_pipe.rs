@@ -40,3 +40,42 @@ impl<I, O, F: FnMut(I) -> O, P: ReceivePipeMut<I>> ReceivePipeMut<O> for Transfo
         (self.transform)(self.pipe.recv_mut())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::pipes::{ReceivePipe, SendPipe};
+
+    #[test]
+    fn test_send() {
+        Transformer::new(|t: i32| t + 1, |t: i32| assert_eq!(t, 2)).send(1);
+    }
+
+    #[test]
+    fn test_recv() {
+        assert_eq!(Transformer::new(|t: i32| t + 1, || 1).recv(), 2);
+    }
+
+    #[test]
+    fn test_send_mut() {
+        let mut i = 0;
+        Transformer::new(|t: i32| t + 1, |t: i32| i += t).send_mut(1);
+        assert_eq!(i, 2);
+    }
+
+    #[test]
+    fn test_recv_mut() {
+        let mut i = 0;
+        assert_eq!(
+            Transformer::new(
+                |t: i32| t + 1,
+                || {
+                    i += 1;
+                    i
+                }
+            )
+            .recv_mut(),
+            2
+        );
+    }
+}

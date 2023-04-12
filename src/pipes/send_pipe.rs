@@ -23,3 +23,26 @@ impl<T, F: Fn(T)> SendPipe<T> for SendPipeImpl<F> {
         self.0(t)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_send() {
+        SendPipeImpl(|t: i32| {
+            assert_eq!(t, 1);
+        })
+        .send(1);
+    }
+
+    #[test]
+    fn test_send_mut() {
+        let mut i = 0;
+        SendPipeImpl(|t: i32| {
+            i += t;
+        })
+        .send_mut(1);
+        assert_eq!(i, 1);
+    }
+}
