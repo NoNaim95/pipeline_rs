@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn test_iter() {
         let mut i = 0;
-        let mut pipe = ReceivePipeImpl(|| {
+        let mut pipe = ReceivePipeImpl::new(|| {
             i += 1;
             if i <= 3 {
                 Some(i)
@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn test_into_iter() {
         let mut i = 0;
-        let mut iter = ReceivePipeImpl(|| {
+        let mut iter = ReceivePipeImpl::new(|| {
             i += 1;
             if i <= 3 {
                 Some(i)
@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_iter_for_each() {
         let mut i = 0;
-        let mut pipe = ReceivePipeImpl(|| {
+        let mut pipe = ReceivePipeImpl::new(|| {
             i += 1;
             if i <= 3 {
                 Some(i)

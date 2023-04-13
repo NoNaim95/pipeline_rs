@@ -5,7 +5,7 @@ mod iterator;
 
 pub struct ReceivePipeImpl<F>(F);
 
-impl<T, F: FnMut() -> T> ReceivePipeImpl<F> {
+impl<F> ReceivePipeImpl<F> {
     pub fn new(f: F) -> Self {
         ReceivePipeImpl(f)
     }
@@ -33,14 +33,14 @@ mod tests {
 
     #[test]
     fn test_recv() {
-        assert_eq!(ReceivePipeImpl(|| 1).recv(), 1);
+        assert_eq!(ReceivePipeImpl::new(|| 1).recv(), 1);
     }
 
     #[test]
     fn test_recv_mut() {
         let mut i = 0;
         assert_eq!(
-            ReceivePipeImpl(|| {
+            ReceivePipeImpl::new(|| {
                 i += 1;
                 i
             })
