@@ -29,19 +29,19 @@ fn main() {
         s.send(x + i).unwrap();
     };
 
-    let t = Plumber::new(|a: String| println!("{}", a))
+    let t = Plumber::from_sink(|a: String| println!("{}", a))
         .with_transformer(|i: i32| i.to_string())
         .with_transformer(|(a, b)| a + b)
         .build();
     t.send((1, 2));
 
-    let t = Plumber::new(|| 42)
+    let t = Plumber::from_source(|| 42)
         .with_transformer(|n| format!("Zahl: {}", n))
         .with_transformer(|s: String| s + "...")
         .build();
     println!("{}", t.recv());
 
-    let mut send_pipe = Plumber::new(closure)
+    let mut send_pipe = Plumber::from_mut_sink(closure)
         .with_transformer(|x| x + 100)
         .with_transformer(|x| x + 100)
         .build();

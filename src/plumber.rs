@@ -6,8 +6,36 @@ pub struct Plumber<P> {
 }
 
 impl<P> Plumber<P> {
-    pub fn new(pipe: P) -> Self {
+    fn new(pipe: P) -> Self {
         Self { pipe }
+    }
+
+    pub fn from_source<T>(source: P) -> Self
+    where
+        P: Fn() -> T,
+    {
+        Plumber::new(source)
+    }
+
+    pub fn from_mut_source<T>(source: P) -> Self
+    where
+        P: FnMut() -> T,
+    {
+        Plumber::new(source)
+    }
+
+    pub fn from_sink<T>(sink: P) -> Self
+    where
+        P: Fn(T),
+    {
+        Plumber::new(sink)
+    }
+
+    pub fn from_mut_sink<T>(sink: P) -> Self
+    where
+        P: FnMut(T),
+    {
+        Plumber::new(sink)
     }
 
     pub fn with_transformer<From, To, F>(self, t: F) -> Plumber<Transformer<From, To, F, P>> {
@@ -27,7 +55,7 @@ mod tests {
 
     #[test]
     fn test_send() {
-        let p = Plumber::new(|t: i32| assert_eq!(t, 2))
+        let p = Plumber::from_sink(|t: i32| assert_eq!(t, 2))
             .with_transformer(|t: i32| t + 1)
             .build();
         p.send(1);
@@ -36,7 +64,7 @@ mod tests {
     #[test]
     fn test_send_mut() {
         let mut i = 0;
-        let mut p = Plumber::new(|t: i32| i += t)
+        let mut p = Plumber::from_mut_sink(|t: i32| i += t)
             .with_transformer(|t: i32| t + 1)
             .build();
         p.send_mut(1);
@@ -45,14 +73,16 @@ mod tests {
 
     #[test]
     fn test_recv() {
-        let p = Plumber::new(|| 1).with_transformer(|t: i32| t + 1).build();
+        let p = Plumber::from_source(|| 1)
+            .with_transformer(|t: i32| t + 1)
+            .build();
         assert_eq!(p.recv(), 2);
     }
 
     #[test]
     fn test_recv_mut() {
         let mut i = 1;
-        let mut p = Plumber::new(|| 1)
+        let mut p = Plumber::from_mut_source(|| 1)
             .with_transformer(|t: i32| {
                 i += t;
                 i
@@ -64,7 +94,7 @@ mod tests {
     #[test]
     fn test_multiple_transformers() {
         let mut i = 0;
-        let mut p = Plumber::new(|t: i32| i += t)
+        let mut p = Plumber::from_mut_sink(|t: i32| i += t)
             .with_transformer(|t: i32| t * t)
             .with_transformer(|t: i32| t + 1)
             .build();
