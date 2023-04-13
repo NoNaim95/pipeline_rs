@@ -110,4 +110,20 @@ mod tests {
         assert_eq!(iter.next(), Some(3));
         assert_eq!(iter.next(), None);
     }
+
+    #[test]
+    fn test_iter_for_each() {
+        let mut i = 0;
+        let mut pipe = ReceivePipeImpl(|| {
+            i += 1;
+            if i <= 3 {
+                Some(i)
+            } else {
+                None
+            }
+        });
+        let mut sum = 0;
+        pipe.iter().for_each(|t| sum += t);
+        assert_eq!(sum, 6);
+    }
 }
