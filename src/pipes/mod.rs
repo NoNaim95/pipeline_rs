@@ -1,6 +1,7 @@
-pub mod receive_pipe;
-pub mod send_pipe;
-pub mod transformer_pipe;
+pub use iterator::*;
+
+mod iterator;
+pub mod transformer;
 
 pub trait ReceivePipe<T>: ReceivePipeMut<T> {
     fn recv(&self) -> T;

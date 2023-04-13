@@ -73,19 +73,18 @@ impl<'a, T, P: ReceivePipeMut<T>> IntoPipeIter<'a, T, P> for P {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::pipes::receive_pipe::ReceivePipeImpl;
 
     #[test]
     fn test_iter() {
         let mut i = 0;
-        let mut pipe = ReceivePipeImpl::new(|| {
+        let mut pipe = || {
             i += 1;
             if i <= 3 {
                 Some(i)
             } else {
                 None
             }
-        });
+        };
         let mut iter = pipe.iter();
         assert_eq!(iter.next(), Some(1));
         assert_eq!(iter.next(), Some(2));
@@ -96,7 +95,7 @@ mod tests {
     #[test]
     fn test_into_iter() {
         let mut i = 0;
-        let mut iter = ReceivePipeImpl::new(|| {
+        let mut iter = (|| {
             i += 1;
             if i <= 3 {
                 Some(i)
@@ -114,14 +113,14 @@ mod tests {
     #[test]
     fn test_iter_for_each() {
         let mut i = 0;
-        let mut pipe = ReceivePipeImpl::new(|| {
+        let mut pipe = || {
             i += 1;
             if i <= 3 {
                 Some(i)
             } else {
                 None
             }
-        });
+        };
         let mut sum = 0;
         pipe.iter().for_each(|t| sum += t);
         assert_eq!(sum, 6);

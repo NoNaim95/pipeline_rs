@@ -1,4 +1,4 @@
-use crate::pipes::transformer_pipe::*;
+use crate::pipes::transformer::*;
 
 /// Connects pipes
 pub struct Plumber<P> {
