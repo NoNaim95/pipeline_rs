@@ -125,4 +125,21 @@ mod tests {
         pipe.iter().for_each(|t| sum += t);
         assert_eq!(sum, 6);
     }
+
+    #[test]
+    fn test_into_iter_for_each() {
+        let mut i = 0;
+        let iter = (|| {
+            i += 1;
+            if i <= 3 {
+                Some(i)
+            } else {
+                None
+            }
+        })
+        .into_iter();
+        let mut sum = 0;
+        iter.for_each(|t| sum += t);
+        assert_eq!(sum, 6);
+    }
 }
