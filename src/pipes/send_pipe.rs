@@ -30,7 +30,7 @@ mod tests {
 
     #[test]
     fn test_send() {
-        SendPipeImpl(|t: i32| {
+        SendPipeImpl::new(|t: i32| {
             assert_eq!(t, 1);
         })
         .send(1);
@@ -39,7 +39,7 @@ mod tests {
     #[test]
     fn test_send_mut() {
         let mut i = 0;
-        SendPipeImpl(|t: i32| {
+        SendPipeImpl::new(|t: i32| {
             i += t;
         })
         .send_mut(1);
