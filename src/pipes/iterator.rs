@@ -40,9 +40,9 @@ impl<T> DerefMut for Rov<'_, T> {
     }
 }
 
-pub struct PipeIterator<'a, T, P: ReceivePipeMut<T>>(Rov<'a, P>, PhantomData<T>);
+pub struct PipeIterator<'a, T, P: ReceivePipeMut<Option<T>>>(Rov<'a, P>, PhantomData<T>);
 
-impl<T, P: ReceivePipeMut<Option<T>>> Iterator for PipeIterator<'_, Option<T>, P> {
+impl<T, P: ReceivePipeMut<Option<T>>> Iterator for PipeIterator<'_, T, P> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -50,21 +50,21 @@ impl<T, P: ReceivePipeMut<Option<T>>> Iterator for PipeIterator<'_, Option<T>, P
     }
 }
 
-pub trait PipeIter<T, P: ReceivePipeMut<T>> {
+pub trait PipeIter<T, P: ReceivePipeMut<Option<T>>> {
     fn iter(&mut self) -> PipeIterator<T, P>;
 }
 
-impl<T, P: ReceivePipeMut<T>> PipeIter<T, P> for P {
+impl<T, P: ReceivePipeMut<Option<T>>> PipeIter<T, P> for P {
     fn iter(&mut self) -> PipeIterator<T, P> {
         PipeIterator(self.into(), PhantomData)
     }
 }
 
-pub trait IntoPipeIter<'a, T, P: ReceivePipeMut<T>> {
+pub trait IntoPipeIter<'a, T, P: ReceivePipeMut<Option<T>>> {
     fn into_iter(self) -> PipeIterator<'a, T, P>;
 }
 
-impl<'a, T, P: ReceivePipeMut<T>> IntoPipeIter<'a, T, P> for P {
+impl<'a, T, P: ReceivePipeMut<Option<T>>> IntoPipeIter<'a, T, P> for P {
     fn into_iter(self) -> PipeIterator<'a, T, P> {
         PipeIterator(self.into(), PhantomData)
     }
